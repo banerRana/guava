@@ -657,10 +657,9 @@ public class IntMathTest extends TestCase {
   private static int computeMeanSafely(int x, int y) {
     BigInteger bigX = BigInteger.valueOf(x);
     BigInteger bigY = BigInteger.valueOf(y);
-    BigDecimal bigMean =
-        new BigDecimal(bigX.add(bigY)).divide(BigDecimal.valueOf(2), BigDecimal.ROUND_FLOOR);
-    // parseInt blows up on overflow as opposed to intValue() which does not.
-    return Integer.parseInt(bigMean.toString());
+    BigDecimal two = BigDecimal.valueOf(2); // Android doesn't have BigDecimal.TWO yet
+    BigDecimal bigMean = new BigDecimal(bigX.add(bigY)).divide(two, RoundingMode.FLOOR);
+    return bigMean.intValueExact();
   }
 
   private static boolean fitsInInt(BigInteger big) {
@@ -690,6 +689,17 @@ public class IntMathTest extends TestCase {
       int n = rand.nextInt(Integer.MAX_VALUE);
       assertEquals(LongMath.isPrime(n), IntMath.isPrime(n));
     }
+  }
+
+  public void testSaturatedAbs() {
+    assertEquals(Integer.MAX_VALUE, IntMath.saturatedAbs(Integer.MIN_VALUE));
+    assertEquals(Integer.MAX_VALUE, IntMath.saturatedAbs(Integer.MAX_VALUE));
+    assertEquals(Integer.MAX_VALUE, IntMath.saturatedAbs(-Integer.MAX_VALUE));
+    assertEquals(0, IntMath.saturatedAbs(0));
+    assertEquals(1, IntMath.saturatedAbs(1));
+    assertEquals(1, IntMath.saturatedAbs(-1));
+    assertEquals(10, IntMath.saturatedAbs(10));
+    assertEquals(10, IntMath.saturatedAbs(-10));
   }
 
   private static int force32(int value) {
